@@ -1,0 +1,49 @@
+steps:
+- id: 'terraform init'
+  name: 'hashicorp/terraform:1.0.9'
+  entrypoint: 'sh'
+  args: 
+  - '-c'
+  - | 
+       cd /workspace/cloudbuild/environments/${_ENVIRONMENT}
+       terraform init
+
+- id: 'terraform plan'
+  name: 'hashicorp/terraform:1.0.9'
+  entrypoint: 'sh'
+  args: 
+  - '-c'
+  - |
+       cd /workspace/cloudbuild/environments/${_ENVIRONMENT}
+       pwd
+       if [ ${_MODULE} = "all" ]; then
+        terraform plan
+       else
+        terraform plan -target=module.${_MODULE}
+       fi
+
+- id: 'terraform apply'
+  name: 'hashicorp/terraform:1.0.9'
+  entrypoint: 'sh'
+  args: 
+  - '-c'
+  - |
+      cd /workspace/cloudbuild/environments/${_ENVIRONMENT}
+      if [ ${_MODULE} = "all" ]; then
+       terraform apply -auto-approve
+      else
+       terraform apply -auto-approve -target=module.${_MODULE}
+      fi
+
+# - id: 'terraform destroy'
+#   name: 'hashicorp/terraform:1.0.9'
+#   entrypoint: 'sh'
+#   args: 
+#   - '-c'
+#   - |
+#      cd /workspace/cloudbuild/environments/${_ENVIRONMENT}
+#      if [ ${_MODULE} = "all" ]; then
+#       terraform destroy -auto-approve
+#      else
+#       terraform destroy -auto-approve -target=module.${_MODULE}
+#      fi 
