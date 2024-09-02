@@ -1,3 +1,6 @@
+---
+options:
+  logging: CLOUD_LOGGING_ONLY
 steps:
 - id: 'terraform init'
   name: 'hashicorp/terraform:1.0.9'
