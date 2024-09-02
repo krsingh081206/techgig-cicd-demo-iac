@@ -5,6 +5,8 @@ steps:
   - name: gcr.io/cloud-builders/git
     id: getRepo-clone
     entrypoint: bash
+    secretEnv:
+      - GITAUTHTOKEN
     args:
       - '-c'
       - |-
