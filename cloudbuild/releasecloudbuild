@@ -1,0 +1,66 @@
+---
+options:
+  logging: CLOUD_LOGGING_ONLY
+steps:
+  - name: gcr.io/cloud-builders/git
+    id: getRepo-clone
+    entrypoint: bash
+    args:
+      - '-c'
+      - |-
+        pwd
+        ls -ltr
+        cd /workspace/cloudbuild/
+        git clone --single-branch -b $_REMOTEBRANCH https://$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-db.git
+        git clone --single-branch -b $_REMOTEBRANCH https://$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-backend.git
+        git clone --single-branch -b $_REMOTEBRANCH https://$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-frontend.git
+
+  # Updating Release json file      
+  - name: gcr.io/cloud-builders/gcloud
+    id: update-release
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        cd /workspace/cloudbuild/
+        mkdir /workspace/cloudbuild/$_RELEASE
+        cat << EOF > /workspace/cloudbuild/$_RELEASE/release.json
+            {
+               "staging": {
+                  "db": "db:$_RELEASE",
+                  "backend": "backend:$_RELEASE",
+                  "frontend": "frontend:$_RELEASE",
+               }
+            }
+        EOF
+        cat /workspace/cloudbuild/$_RELEASE/release.json
+
+  # Updating image in deployment yaml
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: update-k8yaml
+    entrypoint: 'bash'
+    env:
+      - release=$_RELEASE
+      - projectid=$PROJECT_ID
+    args:
+      - '-c'
+      - |
+        apt update && apt install jq -y
+        cd /workspace/cloudbuild/
+        chmod +x /workspace/cloudbuild/release.sh
+        ./release.sh
+
+  #===================Create Release==========================
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Create-Release
+    entrypoint: bash
+    args: 
+      - '-c'
+      - |
+        cd /workspace/cloudbuild/
+        gcloud deploy releases create stage-$_RELEASENAME --project=$PROJECT_ID --region=us-east4 --delivery-pipeline=test-stage-env-deploy-pipeline
+
+availableSecrets :
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/git_pa_token/versions/latest
+      env: 'GITAUTHTOKEN'

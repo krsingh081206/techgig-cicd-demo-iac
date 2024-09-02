@@ -1,0 +1,11 @@
+---
+options:
+  logging: CLOUD_LOGGING_ONLY
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Create-Deploy
+    entrypoint: bash
+    args: 
+      - '-c'
+      - >
+        gcloud deploy apply --file=/workspace/cloudbuild/clouddeploy.yaml --region=us-east4 --project=$PROJECT_ID

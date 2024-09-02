@@ -1,0 +1,14 @@
+apiVersion: skaffold/v2beta16
+kind: Config
+profiles:
+- name: stage-db
+  deploy:
+    kubectl:
+      manifests:
+          - techgig-cicd-demo-db/k8s/staging/camdb-deployment.yaml
+- name: stage-app
+  deploy:
+    kubectl:
+      manifests:
+          - techgig-cicd-demo-backend/k8s/staging/*.yaml
+          - techgig-cicd-demo-frontend/k8s/staging/*.yaml
