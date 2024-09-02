@@ -3,7 +3,7 @@ options:
   logging: CLOUD_LOGGING_ONLY
 steps:
 - id: 'terraform init'
-  name: 'hashicorp/terraform:1.0.9'
+  name: 'hashicorp/terraform:1.5.7'
   entrypoint: 'sh'
   args: 
   - '-c'
@@ -12,7 +12,7 @@ steps:
        terraform init
 
 - id: 'terraform plan'
-  name: 'hashicorp/terraform:1.0.9'
+  name: 'hashicorp/terraform:1.5.7'
   entrypoint: 'sh'
   args: 
   - '-c'
@@ -26,7 +26,7 @@ steps:
        fi
 
 - id: 'terraform apply'
-  name: 'hashicorp/terraform:1.0.9'
+  name: 'hashicorp/terraform:1.5.7'
   entrypoint: 'sh'
   args: 
   - '-c'
@@ -39,7 +39,7 @@ steps:
       fi
 
 # - id: 'terraform destroy'
-#   name: 'hashicorp/terraform:1.0.9'
+#   name: 'hashicorp/terraform:1.5.7'
 #   entrypoint: 'sh'
 #   args: 
 #   - '-c'
