@@ -26,6 +26,8 @@ steps:
       - |
         cd /workspace/cloudbuild/
         mkdir /workspace/cloudbuild/$_RELEASE
+        cd /workspace/cloudbuild/$_RELEASE
+        touch release.json
         cat << EOF > /workspace/cloudbuild/$_RELEASE/release.json
             {
                "staging": {
