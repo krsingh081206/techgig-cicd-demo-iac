@@ -5,7 +5,7 @@ profiles:
   deploy:
     kubectl:
       manifests:
-          - techgig-cicd-demo-db/k8s/staging/camdb-deployment.yaml
+          - techgig-cicd-demo-db/k8s/staging/db-deployment.yaml
 - name: stage-app
   deploy:
     kubectl:
