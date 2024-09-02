@@ -33,7 +33,7 @@ steps:
                "staging": {
                   "db": "db:$_RELEASE",
                   "backend": "backend:$_RELEASE",
-                  "frontend": "frontend:$_RELEASE",
+                  "frontend": "frontend:$_RELEASE"
                }
             }
         EOF
