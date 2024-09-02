@@ -11,9 +11,9 @@ steps:
         pwd
         ls -ltr
         cd /workspace/cloudbuild/
-        git clone --single-branch -b $_REMOTEBRANCH https://$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-db.git
-        git clone --single-branch -b $_REMOTEBRANCH https://$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-backend.git
-        git clone --single-branch -b $_REMOTEBRANCH https://$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-frontend.git
+        git clone --single-branch -b $_REMOTEBRANCH https://$$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-db.git
+        git clone --single-branch -b $_REMOTEBRANCH https://$$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-backend.git
+        git clone --single-branch -b $_REMOTEBRANCH https://$$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-frontend.git
 
   # Updating Release json file      
   - name: gcr.io/cloud-builders/gcloud
