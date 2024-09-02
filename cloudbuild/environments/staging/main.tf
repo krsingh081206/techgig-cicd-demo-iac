@@ -1,18 +1,3 @@
-/**
- * Copyright 2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 provider "google" {
   project = var.project_id
@@ -28,6 +13,12 @@ resource "random_string" "key_suffix" {
 data "google_compute_network" "network" {
   name = var.network_name
   project = var.project_id
+}
+
+data "google_compute_subnetwork" "subnetwork" {
+  name   = var.subnet_name
+  project = var.project_id
+  region = var.region
 }
 
 resource "google_kms_key_ring" "keyring" {
@@ -54,6 +45,24 @@ resource "google_kms_crypto_key_iam_member" "alloydb_sa_iam" {
   member        = "serviceAccount:${google_project_service_identity.alloydb_sa.email}"
 }
 
+resource "google_compute_global_address" "private_ip_alloc" {
+  project       = var.project_id
+  name          = "adb-v6"
+  address_type  = "INTERNAL"
+  purpose       = "VPC_PEERING"
+  prefix_length = 16
+  network       =  data.google_compute_network.network.id
+}
+
+resource "google_service_networking_connection" "vpc_connection" {
+  network                 = data.google_compute_network.network.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DEPLOY ALLOYDB IN GCP
+# ---------------------------------------------------------------------------------------------------------------------
 
 module "alloydb" {
   source           = "../../modules/alloydb"
@@ -101,20 +110,116 @@ module "alloydb" {
   ]
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# DEPLOY A PRIVATE CLUSTER IN GOOGLE CLOUD PLATFORM
+# ---------------------------------------------------------------------------------------------------------------------
 
+module "gke_cluster" {
+  # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "github.com/gruntwork-io/terraform-google-gke.git//modules/gke-cluster?ref=v0.2.0"
+  source = "../../modules/gke-cluster"
 
-resource "google_compute_global_address" "private_ip_alloc" {
-  project       = var.project_id
-  name          = "adb-v6"
-  address_type  = "INTERNAL"
-  purpose       = "VPC_PEERING"
-  prefix_length = 16
-  network       =  data.google_compute_network.network.id
+  name = var.cluster_name
+
+  project  = var.project_id
+  location = var.region
+  network  = data.google_compute_network.network.id
+
+  # We're deploying the cluster in the 'public' subnetwork to allow outbound internet access
+  # See the network access tier table for full details:
+  # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
+  subnetwork                    = data.google_compute_subnetwork.subnetwork.self_link
+  cluster_secondary_range_name  = var.public_subnetwork_secondary_range_name
+  services_secondary_range_name = var.public_services_secondary_range_name
+
+  # When creating a private cluster, the 'master_ipv4_cidr_block' has to be defined and the size must be /28
+  master_ipv4_cidr_block = var.master_ipv4_cidr_block
+
+  # This setting will make the cluster private
+  enable_private_nodes = "true"
+
+  # To make testing easier, we keep the public endpoint available. In production, we highly recommend restricting access to only within the network boundary, requiring your users to use a bastion host or VPN.
+  disable_public_endpoint = "false"
+
+  # With a private cluster, it is highly recommended to restrict access to the cluster master
+  # However, for testing purposes we will allow all inbound traffic.
+  master_authorized_networks_config = [
+    {
+      cidr_blocks = [
+        {
+          cidr_block   = "0.0.0.0/0"
+          display_name = "all-for-testing"
+        },
+      ]
+    },
+  ]
+
+  enable_vertical_pod_autoscaling = var.enable_vertical_pod_autoscaling
+
+  resource_labels = {
+    environment = "testing"
+  }
 }
 
-resource "google_service_networking_connection" "vpc_connection" {
-  network                 = data.google_compute_network.network.id
-  service                 = "servicenetworking.googleapis.com"
-  reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE A NODE POOL
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "google_container_node_pool" "node_pool" {
+  provider = google-beta
+
+  name     = "private-pool"
+  project  = var.project_id
+  location = var.region
+  cluster  = module.gke_cluster.name
+
+  initial_node_count = "1"
+
+  autoscaling {
+    min_node_count = "1"
+    max_node_count = "5"
+  }
+
+  management {
+    auto_repair  = "true"
+    auto_upgrade = "true"
+  }
+
+  node_config {
+    image_type   = "cos_containerd"
+    machine_type = "n2-standard-2"
+
+    labels = {
+      private-pools-example = "true"
+    }
+
+    # Add a private tag to the instances. See the network access tier table for full details:
+    # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
+    tags = [
+      data.google_compute_network.network.name,
+      "private-pool-example",
+    ]
+
+    disk_size_gb = "30"
+    disk_type    = "pd-standard"
+    preemptible  = false
+
+    service_account = "example-private-cluster-sa@rd-application-group.iam.gserviceaccount.com"
+
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform",
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [initial_node_count]
+  }
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "30m"
+  }
 }
 
