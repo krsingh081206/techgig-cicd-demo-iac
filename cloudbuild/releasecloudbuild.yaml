@@ -15,6 +15,7 @@ steps:
         cd /workspace/cloudbuild/
         git clone --single-branch -b $_REMOTEBRANCH https://$$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-db.git
         git clone --single-branch -b $_REMOTEBRANCH https://$$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-backend.git
+        git clone --single-branch -b $_REMOTEBRANCH https://$$GITAUTHTOKEN@github.com/krsingh081206/cicd-demo-backend-java.git
         git clone --single-branch -b $_REMOTEBRANCH https://$$GITAUTHTOKEN@github.com/krsingh081206/techgig-cicd-demo-frontend.git
 
   # Updating Release json file      
@@ -33,6 +34,7 @@ steps:
                "staging": {
                   "db": "db:$_RELEASE",
                   "backend": "backend:$_RELEASE",
+                  "springbootsvc": "springbootsvc:$_RELEASE",
                   "frontend": "frontend:$_RELEASE"
                }
             }
