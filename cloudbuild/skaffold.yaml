@@ -11,4 +11,5 @@ profiles:
     kubectl:
       manifests:
           - techgig-cicd-demo-backend/k8s/staging/*.yaml
+          - cicd-demo-backend-java/k8s/staging/*.yaml
           - techgig-cicd-demo-frontend/k8s/staging/*.yaml
