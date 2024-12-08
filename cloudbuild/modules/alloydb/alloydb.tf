@@ -29,10 +29,11 @@ locals {
   )
 }
 
+/*
 data "google_compute_network" "network" {
   name = var.network_name
   project = var.project_id
-}
+} */
 
 resource "google_alloydb_cluster" "default" {
   cluster_id   = var.cluster_id
@@ -40,7 +41,14 @@ resource "google_alloydb_cluster" "default" {
   display_name = var.cluster_display_name
   project      = var.project_id
   labels       = var.cluster_labels
-  network      = data.google_compute_network.network.id
+  network_config {
+    network = var.network_self_link
+  }
+ 
+  initial_user {
+    user     = "postgres"
+    password = "postgres"
+  }
 
   dynamic "automated_backup_policy" {
     for_each = var.automated_backup_policy != null ? [var.automated_backup_policy] : []
@@ -134,8 +142,10 @@ resource "google_alloydb_instance" "primary" {
   database_flags    = var.primary_instance.database_flags
   labels            = var.primary_instance.labels
   annotations       = var.primary_instance.annotations
-  gce_zone          = var.primary_instance.availability_type == "ZONAL" ? var.primary_instance.gce_zone : null
-  availability_type = var.primary_instance.availability_type
+  availability_type   = "ZONAL"
+  gce_zone            = "us-east4-a"
+  //gce_zone          = var.primary_instance.availability_type == "ZONAL" ? var.primary_instance.gce_zone : null
+  //availability_type = var.primary_instance.availability_type
  
   
 

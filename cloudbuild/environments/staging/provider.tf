@@ -1,7 +1,7 @@
 terraform {
   required_version = ">=1.0.9"
   backend "gcs" {
-    bucket = "techgig-demo-terraform-tfstate"
+    bucket = "gcpdemo-terraform-tfstate"
     prefix = "terraform/state/stage"
   }
   required_providers {

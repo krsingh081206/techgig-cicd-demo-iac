@@ -9,7 +9,7 @@ resource "random_string" "key_suffix" {
   special = false
   upper   = false
 }
-
+/*
 data "google_compute_network" "network" {
   name = var.network_name
   project = var.project_id
@@ -19,7 +19,7 @@ data "google_compute_subnetwork" "subnetwork" {
   name   = var.subnet_name
   project = var.project_id
   region = var.region
-}
+} */
 
 resource "google_kms_key_ring" "keyring" {
   project  = var.project_id
@@ -51,13 +51,33 @@ resource "google_compute_global_address" "private_ip_alloc" {
   address_type  = "INTERNAL"
   purpose       = "VPC_PEERING"
   prefix_length = 16
-  network       =  data.google_compute_network.network.id
+  network       =  module.vpc_network.network
 }
 
 resource "google_service_networking_connection" "vpc_connection" {
-  network                 = data.google_compute_network.network.id
+  network                 = module.vpc_network.network
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_alloc.name]
+}
+# ---------------------------------------------------------------------------------------------------------------------
+# VPC NETWORK CREATION IN GCP
+# ---------------------------------------------------------------------------------------------------------------------
+module "vpc_network" {
+  source = "github.com/gruntwork-io/terraform-google-network.git//modules/vpc-network?ref=v0.8.2"
+
+  name_prefix = var.network_name
+  project     = var.project_id
+  region      = var.region
+
+  cidr_block           = var.vpc_cidr_block
+  secondary_cidr_block = var.vpc_secondary_cidr_block
+
+  public_subnetwork_secondary_range_name = var.public_subnetwork_secondary_range_name
+  public_services_secondary_range_name   = var.public_services_secondary_range_name
+  public_services_secondary_cidr_block   = var.public_services_secondary_cidr_block
+  private_services_secondary_cidr_block  = var.private_services_secondary_cidr_block
+  secondary_cidr_subnetwork_width_delta  = var.secondary_cidr_subnetwork_width_delta
+  secondary_cidr_subnetwork_spacing      = var.secondary_cidr_subnetwork_spacing
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -70,7 +90,7 @@ module "alloydb" {
   cluster_location = var.region
   project_id       = var.project_id
 
-  network_self_link           = "projects/${var.project_id}/global/networks/${var.network_name}"
+  // network_self_link           = "projects/${var.project_id}/global/networks/${var.network_name}"
   cluster_encryption_key_name = google_kms_crypto_key.key.id
 
   automated_backup_policy = {
@@ -124,14 +144,15 @@ module "gke_cluster" {
 
   project  = var.project_id
   location = var.region
-  network  = data.google_compute_network.network.id
+  network  = module.vpc_network.network
 
   # We're deploying the cluster in the 'public' subnetwork to allow outbound internet access
   # See the network access tier table for full details:
   # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
-  subnetwork                    = data.google_compute_subnetwork.subnetwork.self_link
-  cluster_secondary_range_name  = var.public_subnetwork_secondary_range_name
-  services_secondary_range_name = var.public_services_secondary_range_name
+
+  subnetwork                    = module.vpc_network.public_subnetwork
+  cluster_secondary_range_name  = module.vpc_network.public_subnetwork_secondary_range_name
+  services_secondary_range_name = module.vpc_network.public_services_secondary_range_name
 
   # When creating a private cluster, the 'master_ipv4_cidr_block' has to be defined and the size must be /28
   master_ipv4_cidr_block = var.master_ipv4_cidr_block
@@ -197,7 +218,7 @@ resource "google_container_node_pool" "node_pool" {
     # Add a private tag to the instances. See the network access tier table for full details:
     # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
     tags = [
-      data.google_compute_network.network.name,
+      module.vpc_network.private,
       "private-pool-example",
     ]
 
@@ -205,7 +226,7 @@ resource "google_container_node_pool" "node_pool" {
     disk_type    = "pd-standard"
     preemptible  = false
 
-    service_account = "example-private-cluster-sa@rd-application-group.iam.gserviceaccount.com"
+    service_account = "example-private-cluster-sa@gcp-cicd-demo-dev.iam.gserviceaccount.com"
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",

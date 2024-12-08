@@ -1,13 +1,13 @@
 variable "project_id" {
   description = "The ID of the project in which to provision resources."
   type        = string
-  default     = "rd-application-group"
+  default     = "gcp-cicd-demo-dev"
 }
 
 variable "network_name" {
   description = "The ID of the network in which to provision resources."
   type        = string
-  default     = "example-private-cluster-network-network"
+  default     = "my-network"
 }
 
 variable "subnet_name" {

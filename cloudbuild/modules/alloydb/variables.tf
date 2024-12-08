@@ -64,6 +64,7 @@ variable "cluster_encryption_key_name" {
 variable "network_self_link" {
   description = "Network ID where the AlloyDb cluster will be deployed."
   type        = string
+  default = "my-network-network"
 }
 
 variable "automated_backup_policy" {
@@ -135,8 +136,8 @@ variable "read_pool_instance" {
     display_name      = string
     node_count        = optional(number, 1)
     database_flags    = optional(map(string))
-    availability_type = optional(string)
-    gce_zone          = optional(string)
+    availability_type = optional(string,"ZONAL")
+    gce_zone          = optional(string,"us-east4-a")
     machine_cpu_count = optional(number, 2)
   }))
   default = []
