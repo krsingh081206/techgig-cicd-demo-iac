@@ -1,6 +1,18 @@
 apiVersion: skaffold/v2beta16
 kind: Config
 profiles:
+- name: dev-db
+  deploy:
+    kubectl:
+      manifests:
+          - techgig-cicd-demo-db/k8s/dev/db-deployment.yaml
+- name: dev-app
+  deploy:
+    kubectl:
+      manifests:
+          - techgig-cicd-demo-backend/k8s/dev/*.yaml
+          - cicd-demo-backend-java/k8s/dev/*.yaml
+          - techgig-cicd-demo-frontend/k8s/dev/*.yaml
 - name: stage-db
   deploy:
     kubectl:
@@ -13,3 +25,15 @@ profiles:
           - techgig-cicd-demo-backend/k8s/staging/*.yaml
           - cicd-demo-backend-java/k8s/staging/*.yaml
           - techgig-cicd-demo-frontend/k8s/staging/*.yaml
+- name: prod-db
+  deploy:
+    kubectl:
+      manifests:
+          - techgig-cicd-demo-db/k8s/prod/db-deployment.yaml
+- name: prod-app
+  deploy:
+    kubectl:
+      manifests:
+          - techgig-cicd-demo-backend/k8s/prod/*.yaml
+          - cicd-demo-backend-java/k8s/prod/*.yaml
+          - techgig-cicd-demo-frontend/k8s/prod/*.yaml

@@ -5,12 +5,55 @@ metadata:
 description: gke deployment pipeline
 serialPipeline:
   stages:
+    - targetId: dev-db
+      profiles:
+        - dev-db
+    - targetId: dev-app
+      profiles:
+        - dev-app
     - targetId: stage-db
       profiles:
         - stage-db
     - targetId: stage-app
       profiles:
-        - stage-app
+        - stage-app          
+    - targetId: prod-db
+      profiles:
+        - prod-db
+    - targetId: prod-app
+      profiles:
+        - prod-app
+
+---
+apiVersion: deploy.cloud.google.com/v1beta1
+kind: Target
+metadata:
+  name: dev-db
+description: dev cluster
+requireApproval: true
+gke:
+  cluster: projects/rd-application-group/locations/us-east4/clusters/example-private-cluster
+executionConfigs:
+- defaultPool:
+    serviceAccount: cloudbuild-sa@rd-application-group.iam.gserviceaccount.com
+  usages:
+  - RENDER
+  - DEPLOY
+
+---
+apiVersion: deploy.cloud.google.com/v1beta1
+kind: Target
+metadata:
+  name: dev-app
+description: dev cluster
+gke:
+  cluster: projects/rd-application-group/locations/us-east4/clusters/example-private-cluster
+executionConfigs:
+- defaultPool:
+    serviceAccount: cloudbuild-sa@rd-application-group.iam.gserviceaccount.com
+  usages:
+  - RENDER
+  - DEPLOY
 
 ---
 apiVersion: deploy.cloud.google.com/v1beta1
@@ -42,3 +85,33 @@ executionConfigs:
   usages:
   - RENDER
   - DEPLOY
+---
+apiVersion: deploy.cloud.google.com/v1beta1
+kind: Target
+metadata:
+  name: prod-db
+description: prod cluster
+requireApproval: true
+gke:
+  cluster: projects/rd-application-group/locations/us-east4/clusters/example-private-cluster
+executionConfigs:
+- defaultPool:
+    serviceAccount: cloudbuild-sa@rd-application-group.iam.gserviceaccount.com
+  usages:
+  - RENDER
+  - DEPLOY
+
+---
+apiVersion: deploy.cloud.google.com/v1beta1
+kind: Target
+metadata:
+  name: prod-app
+description: prod cluster
+gke:
+  cluster: projects/rd-application-group/locations/us-east4/clusters/example-private-cluster
+executionConfigs:
+- defaultPool:
+    serviceAccount: cloudbuild-sa@rd-application-group.iam.gserviceaccount.com
+  usages:
+  - RENDER
+  - DEPLOY  
