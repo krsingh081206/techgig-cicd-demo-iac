@@ -46,6 +46,7 @@ kind: Target
 metadata:
   name: dev-app
 description: dev cluster
+requireApproval: true
 gke:
   cluster: projects/rd-application-group/locations/us-east4/clusters/example-private-cluster
 executionConfigs:
@@ -77,6 +78,7 @@ kind: Target
 metadata:
   name: stage-app
 description: stage cluster
+requireApproval: true
 gke:
   cluster: projects/rd-application-group/locations/us-east4/clusters/example-private-cluster
 executionConfigs:
@@ -107,6 +109,7 @@ kind: Target
 metadata:
   name: prod-app
 description: prod cluster
+requireApproval: true
 gke:
   cluster: projects/rd-application-group/locations/us-east4/clusters/example-private-cluster
 executionConfigs:
