@@ -31,7 +31,20 @@ steps:
         touch release.json
         cat << EOF > /workspace/cloudbuild/$_RELEASE/release.json
             {
+               
+               "dev": {
+                  "db": "db:$_RELEASE",
+                  "backend": "backend:$_RELEASE",
+                  "springbootsvc": "springbootsvc:$_RELEASE",
+                  "frontend": "frontend:$_RELEASE"
+               },
                "staging": {
+                  "db": "db:$_RELEASE",
+                  "backend": "backend:$_RELEASE",
+                  "springbootsvc": "springbootsvc:$_RELEASE",
+                  "frontend": "frontend:$_RELEASE"
+               },
+                "production": {
                   "db": "db:$_RELEASE",
                   "backend": "backend:$_RELEASE",
                   "springbootsvc": "springbootsvc:$_RELEASE",
@@ -53,8 +66,12 @@ steps:
       - |
         apt update && apt install jq -y
         cd /workspace/cloudbuild/
-        chmod +x /workspace/cloudbuild/release.sh
-        ./release.sh
+        chmod +x /workspace/cloudbuild/releasedev.sh
+        ./releasedev.sh
+        chmod +x /workspace/cloudbuild/releasestage.sh
+        ./releasestage.sh
+        chmod +x /workspace/cloudbuild/releaseprod.sh
+        ./releaseprod.sh                
 
   #===================Create Release==========================
   - name: 'gcr.io/cloud-builders/gcloud'
