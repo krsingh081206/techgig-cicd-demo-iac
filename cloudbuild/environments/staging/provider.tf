@@ -3,7 +3,6 @@ terraform {
   backend "gcs" {
     bucket = "poc-demo-terraform-tfstate"
     prefix = "terraform/state/dev"
-    project = "gcp-poc-app-dev"
   }
   required_providers {
     google = {
