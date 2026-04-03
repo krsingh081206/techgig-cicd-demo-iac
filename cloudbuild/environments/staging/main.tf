@@ -188,7 +188,7 @@ resource "google_container_node_pool" "node_pool" {
 
   node_config {
     image_type   = "cos_containerd"
-    machine_type = "n2-standard-2"
+    machine_type = "n2-standard-4"
 
     labels = {
       private-pools-example = "true"
