@@ -205,7 +205,7 @@ resource "google_container_node_pool" "node_pool" {
     disk_type    = "pd-standard"
     preemptible  = false
 
-    service_account = "example-private-cluster-sa@rd-application-group.iam.gserviceaccount.com"
+    service_account = "dev-gke@gcp-poc-app-dev.iam.gserviceaccount.com"
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
