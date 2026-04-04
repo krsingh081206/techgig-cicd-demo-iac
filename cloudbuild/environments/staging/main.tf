@@ -11,7 +11,7 @@ module "vpc_network" {
   source = "github.com/gruntwork-io/terraform-google-network.git//modules/vpc-network?ref=v0.8.2"
   #source= "github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network"
   name_prefix = "${var.cluster_name}-network-nw"
-  project     = var.project
+  project     = var.project_id
   region      = var.region
 
   cidr_block           = var.vpc_cidr_block
