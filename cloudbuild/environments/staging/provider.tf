@@ -1,7 +1,7 @@
 terraform {
   required_version = ">=1.0.9"
   backend "gcs" {
-    bucket = "poc-demo-terraform-tfstate"
+    bucket = "poc-stg-demo-terraform-tfstate"
     prefix = "terraform/state/dev"
   }
   required_providers {

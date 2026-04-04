@@ -145,5 +145,5 @@ variable "read_pool_instance" {
 variable "network_name" {
   description = "The ID of the network in which to provision resources."
   type        = string
-  default     = "example-private-cluster-network-network"
+  default     = "example-private-cluster-network-nw-network"
 }
