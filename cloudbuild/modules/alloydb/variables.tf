@@ -52,7 +52,10 @@ variable "cluster_initial_user" {
     user     = optional(string),
     password = string
   })
-  default = null
+  default = {
+    user     = "postgres"
+    password = "Linux123#$"
+  }
 }
 
 variable "cluster_encryption_key_name" {
