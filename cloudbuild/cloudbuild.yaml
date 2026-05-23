@@ -21,6 +21,8 @@ steps:
        pwd
        if [ ${_MODULE} = "all" ]; then
         terraform plan
+       elif [ ${_MODULE} = "gke_cluster" ]; then
+        terraform plan -target=module.gke_cluster -target=google_container_node_pool.node_pool
        else
         terraform plan -target=module.${_MODULE}
        fi
@@ -34,6 +36,8 @@ steps:
       cd /workspace/cloudbuild/environments/${_ENVIRONMENT}
       if [ ${_MODULE} = "all" ]; then
        terraform apply -auto-approve
+      elif [ ${_MODULE} = "gke_cluster" ]; then
+       terraform apply -auto-approve -target=module.gke_cluster -target=google_container_node_pool.node_pool
       else
        terraform apply -auto-approve -target=module.${_MODULE}
       fi
